@@ -45,7 +45,53 @@ var saveTasks = function() {
   localStorage.setItem("tasks", JSON.stringify(tasks));
 };
 
+// task paragraph (task) was clicked
+$(".list-group").on("click", "p", function() {
+  var text = $(this).text().trim();
+  var textInput = $("<textarea>").addClass("form-control").val(text);
+  $(this).replaceWith(textInput);
+  textInput.trigger("focus");
+});
 
+//task paragraph was unclicked (Save new text)
+$(".list-group").on("blur", "textarea", function() {
+  //get current text value
+  var text = $(this).val().trim();
+  //get parent ul's id attribute
+  var status = $(this).closest(".list-group").attr("id").replace("list-","");
+  //get task's position in the list of other lis
+  var index = $(this).closest(".list-group-item").index();
+  tasks[status][index].text = text;
+  saveTasks();
+  //recreate p element
+  var taskP = $("<p>").addClass("m-1").text(text);
+  //replace textarea with p element
+  $(this).replaceWith(taskP);
+});
+
+// task span (date) was clicked
+$(".list-group").on("click", "span", function() {
+  var date = $(this).text().trim();
+  var dateInput = $("<input>").attr("type", "text").addClass("form-control").val(date);
+  $(this).replaceWith(dateInput);
+  dateInput.trigger("focus");
+});
+
+//value of due date was changed
+$(".list-group").on("blur", "input[type='text']", function() {
+  //get current date value
+  var date = $(this).val().trim();
+  //get parent ul's id attribute
+  var status = $(this).closest(".list-group").attr("id").replace("list-","");
+  //get task's position in the list of other lis
+  var index = $(this).closest(".list-group-item").index();
+  tasks[status][index].date = date;
+  saveTasks();
+  //recreate p element
+  var taskSpan = $("<span>").addClass("badge badge-primary badge-pill").text(date);
+  //replace textarea with p element
+  $(this).replaceWith(taskSpan);
+});
 
 
 // modal was triggered

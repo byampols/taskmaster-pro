@@ -93,6 +93,54 @@ $(".list-group").on("blur", "input[type='text']", function() {
   $(this).replaceWith(taskSpan);
 });
 
+$(".card .list-group").sortable({
+  connectWith: $(".card .list-group"),
+  scroll: false,
+  tolerance: "pointer",
+  helper: "clone",
+  activate: function(event) {
+    console.log("activate", this);
+  },
+  deactivate: function(event) {
+    console.log("deactivate", this);
+  },
+  over: function(event) {
+    console.log("over", this);
+  },
+  out: function(event) {
+    console.log("out", this);
+  },
+  update: function(event) {
+    var tempArr = [];
+    //loop over current set of children in sortable list
+    $(this).children().each(function() {
+      var text = $(this).find("p").text().trim();
+      var date = $(this).find("span").text().trim();
+      tempArr.push({
+        text: text,
+        date: date
+      });
+      console.log(tempArr);
+    });
+    var arrName = $(this).attr("id").replace("list-", "");
+    tasks[arrName] = tempArr;
+    saveTasks();
+  }
+});
+
+($("#trash")).droppable({
+  accept: ".card .list-group-item",
+  tolerance: "touch",
+  drop: function(event, ui) {
+    ui.draggable.remove();
+  },
+  over: function(event, ui) {
+    console.log("over");
+  },
+  out: function(event, ui) {
+    console.log("out");
+  }
+})
 
 // modal was triggered
 $("#task-form-modal").on("show.bs.modal", function() {

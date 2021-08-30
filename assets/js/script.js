@@ -13,6 +13,8 @@ var createTask = function(taskText, taskDate, taskList) {
   // append span and p element to parent li
   taskLi.append(taskSpan, taskP);
 
+  //check due date
+  auditTask(taskLi);
 
   // append to ul list on the page
   $("#list-" + taskList).append(taskLi);
@@ -33,7 +35,7 @@ var loadTasks = function() {
 
   // loop over object properties
   $.each(tasks, function(list, arr) {
-    console.log(list, arr);
+    //console.log(list, arr);
     // then loop over sub-array
     arr.forEach(function(task) {
       createTask(task.text, task.date, list);
@@ -43,6 +45,26 @@ var loadTasks = function() {
 
 var saveTasks = function() {
   localStorage.setItem("tasks", JSON.stringify(tasks));
+};
+
+var auditTask = function(taskE1) {
+  //get date from task element
+  var date = $(taskE1).find("span").text().trim();
+  console.log(date);
+
+  //convert to moment object @5:00pm
+  var time = moment(date, "L").set("hour",17);
+  console.log(time);
+
+  //remove any old classes from element
+  $(taskE1).removeClass("list-group-item-warning list-group-item-danger");
+
+  //apply new class if task is near/over due date
+  if (moment().isAfter(time)) {
+    $(taskE1).addClass("list-group-item-danger");
+  } else if (Math.abs(moment().diff(time, "days")) <= 2) {
+    $(taskE1).addClass("list-group-item-warning");
+  }
 };
 
 // task paragraph (task) was clicked
@@ -71,14 +93,25 @@ $(".list-group").on("blur", "textarea", function() {
 
 // task span (date) was clicked
 $(".list-group").on("click", "span", function() {
+  //get current text value
   var date = $(this).text().trim();
+  //create new input element
   var dateInput = $("<input>").attr("type", "text").addClass("form-control").val(date);
   $(this).replaceWith(dateInput);
+  //enable jquery ui datepicker
+  dateInput.datepicker({
+    minDate: 1,
+    onClose: function () {
+      //when calendar is closed, force trigger a change event
+      $(this).trigger("change");
+    }
+  });
+  //automatically bring up the calender
   dateInput.trigger("focus");
 });
 
 //value of due date was changed
-$(".list-group").on("blur", "input[type='text']", function() {
+$(".list-group").on("change", "input[type='text']", function() {
   //get current date value
   var date = $(this).val().trim();
   //get parent ul's id attribute
@@ -91,6 +124,9 @@ $(".list-group").on("blur", "input[type='text']", function() {
   var taskSpan = $("<span>").addClass("badge badge-primary badge-pill").text(date);
   //replace textarea with p element
   $(this).replaceWith(taskSpan);
+
+  //audit new due date
+  auditTask($(taskSpan).closest(".list-group-item"));
 });
 
 $(".card .list-group").sortable({
@@ -152,6 +188,11 @@ $("#task-form-modal").on("show.bs.modal", function() {
 $("#task-form-modal").on("shown.bs.modal", function() {
   // highlight textarea
   $("#modalTaskDescription").trigger("focus");
+});
+
+// modal date picker
+$("#modalDueDate").datepicker({
+  minDate: 1
 });
 
 // save button in modal was clicked
